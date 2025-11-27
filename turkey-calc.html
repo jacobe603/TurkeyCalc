@@ -848,14 +848,12 @@
                             <button id="btn-frozen" onclick="setFrozen(true)">Frozen</button>
                         </div>
                         <div id="frozen-options" class="frozen-options">
-                            <label>
-                                <input type="radio" name="frozen-level" value="partial" checked>
-                                Partially Frozen (+25% time)
-                            </label>
-                            <label>
-                                <input type="radio" name="frozen-level" value="full">
-                                Fully Frozen (+50% time)
-                            </label>
+                            <div id="thaw-info" class="thaw-info" style="padding: 10px; background: #fff3cd; border-radius: 6px; font-size: 0.85rem;">
+                                <div id="thaw-calculator"></div>
+                                <div id="frozen-stuffing-warning" style="margin-top: 8px; color: #856404;">
+                                    Frozen turkeys cannot be stuffed for food safety reasons.
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -887,7 +885,11 @@
                         <div class="label">Total Cook Time</div>
                         <div class="value" id="total-cook-time">--</div>
                     </div>
-                    <div class="result-item">
+                    <div class="result-item" id="thaw-row" style="display: none;">
+                        <div class="label">Move to Fridge</div>
+                        <div class="value" id="thaw-time">--</div>
+                    </div>
+                    <div class="result-item" id="fridge-row">
                         <div class="label">Remove from Fridge</div>
                         <div class="value" id="fridge-time">--</div>
                     </div>
@@ -993,7 +995,7 @@
 
         // Cooking milestones
         const MILESTONES = [
-            { id: 'remove-fridge', name: 'Remove from Fridge', desc: 'Take turkey out to bring to room temperature', offsetMinutes: -60, icon: '&#129385;' },
+            { id: 'remove-fridge', name: 'Remove from Fridge', desc: 'Take turkey out to bring to room temperature', offsetMinutes: -30, icon: '&#129385;' },
             { id: 'preheat', name: 'Preheat Oven', desc: 'Preheat oven to 325F (165C)', offsetMinutes: -30, icon: '&#128293;' },
             { id: 'start-cooking', name: 'Turkey In Oven', desc: 'Place turkey in preheated oven', offsetMinutes: 0, icon: '&#127831;' },
             { id: 'baste-1', name: 'First Baste', desc: 'Baste turkey with pan juices', offsetPercent: 0.25, icon: '&#129348;' },
@@ -1012,7 +1014,6 @@
         let state = {
             weight: 14,
             isFrozen: false,
-            frozenLevel: 'partial',
             isStuffed: false,
             finishTime: null,
             cookingStartTime: null,
@@ -1049,7 +1050,6 @@
             state = {
                 weight: 14,
                 isFrozen: false,
-                frozenLevel: 'partial',
                 isStuffed: false,
                 finishTime: null,
                 cookingStartTime: null,
@@ -1063,7 +1063,7 @@
         // ============================================
         // CALCULATIONS
         // ============================================
-        function getCookingTimeWithDetails(weight, isStuffed, isFrozen, frozenLevel) {
+        function getCookingTimeWithDetails(weight, isStuffed, isFrozen) {
             // Find the appropriate range
             let range = COOKING_TIMES.ranges.find(r => weight >= r[0] && weight <= r[1]);
             if (!range) {
@@ -1096,38 +1096,22 @@
                 weight: weight,
                 isStuffed: isStuffed,
                 isFrozen: isFrozen,
-                frozenLevel: frozenLevel,
                 rangeUsed: `${rangeMin}-${rangeMax} lbs`,
                 baseTimeRange: `${minHours}-${maxHours} hrs`,
                 baseMinutes: baseMinutes,
                 minPerLb: minPerLb,
-                frozenMultiplier: 1,
-                frozenAddedMinutes: 0,
                 finalMinutes: baseMinutes
             };
 
-            // Apply frozen adjustment
-            let finalHours = baseHours;
-            if (isFrozen) {
-                if (frozenLevel === 'full') {
-                    details.frozenMultiplier = 1.5;
-                    finalHours = baseHours * 1.5;
-                } else {
-                    details.frozenMultiplier = 1.25;
-                    finalHours = baseHours * 1.25;
-                }
-                details.frozenAddedMinutes = (finalHours - baseHours) * 60;
-                details.finalMinutes = finalHours * 60;
-            }
-
+            // No frozen adjustment needed - frozen turkeys are thawed before cooking
             return {
-                hours: finalHours,
+                hours: baseHours,
                 details: details
             };
         }
 
-        function getCookingTime(weight, isStuffed, isFrozen, frozenLevel) {
-            return getCookingTimeWithDetails(weight, isStuffed, isFrozen, frozenLevel).hours;
+        function getCookingTime(weight, isStuffed, isFrozen) {
+            return getCookingTimeWithDetails(weight, isStuffed, isFrozen).hours;
         }
 
         function renderCalcBreakdown(details) {
@@ -1150,15 +1134,6 @@
                 <span class="calc-label">Base Cook Time</span>
                 <span class="calc-value">${details.weight} lbs x ${details.minPerLb.toFixed(1)} min = ${formatDuration(details.baseMinutes)}</span>
             </div>`;
-
-            // Frozen adjustment if applicable
-            if (details.isFrozen) {
-                const pct = details.frozenLevel === 'full' ? '+50%' : '+25%';
-                html += `<div class="calc-row">
-                    <span class="calc-label">Frozen Adjustment (${pct})</span>
-                    <span class="calc-value">+${formatDuration(details.frozenAddedMinutes)}</span>
-                </div>`;
-            }
 
             // Final time
             html += `<div class="calc-row">
@@ -1203,7 +1178,7 @@
             const finishTime = new Date(finishInput);
             state.finishTime = finishTime;
 
-            const cookingResult = getCookingTimeWithDetails(state.weight, state.isStuffed, state.isFrozen, state.frozenLevel);
+            const cookingResult = getCookingTimeWithDetails(state.weight, state.isStuffed, state.isFrozen);
             const cookingHours = cookingResult.hours;
             const cookingMinutes = cookingHours * 60;
             const restMinutes = 20;
@@ -1211,18 +1186,41 @@
             // Turkey should be done 20 minutes before target carve time
             const turkeyDoneTime = new Date(finishTime.getTime() - restMinutes * 60 * 1000);
             const startCookingTime = new Date(turkeyDoneTime.getTime() - cookingMinutes * 60 * 1000);
-            // Remove from fridge 1 hour before cooking to bring to room temperature
-            const fridgeTime = new Date(startCookingTime.getTime() - 60 * 60 * 1000);
+            // Remove from fridge 30 minutes before cooking to bring to room temperature
+            // (per Butterball/USDA guidelines - max 30 min at room temp for food safety)
+            const fridgeTime = new Date(startCookingTime.getTime() - 30 * 60 * 1000);
 
             // Calculate milestones
             state.calculatedMilestones = calculateMilestones(startCookingTime, cookingHours);
 
             // Update UI
             document.getElementById('total-cook-time').textContent = formatDuration(cookingMinutes);
-            document.getElementById('fridge-time').textContent = formatTime(fridgeTime);
-            document.getElementById('start-time').textContent = formatTime(startCookingTime);
-            document.getElementById('done-time').textContent = formatTime(turkeyDoneTime);
-            document.getElementById('carve-time').textContent = formatTime(finishTime);
+
+            // Show/hide thaw row and fridge row based on frozen state
+            const fridgeRow = document.getElementById('fridge-row');
+            const thawRow = document.getElementById('thaw-row');
+
+            if (state.isFrozen) {
+                // Frozen turkey: show "Move to Fridge" date for thawing
+                const thawDays = Math.ceil(state.weight / 4.5);
+                const thawStartTime = new Date(startCookingTime.getTime() - 30 * 60 * 1000 - thawDays * 24 * 60 * 60 * 1000);
+
+                thawRow.style.display = '';
+                document.getElementById('thaw-time').textContent = formatDate(thawStartTime);
+
+                // Still show fridge removal time (after thawing is complete)
+                fridgeRow.style.display = '';
+                document.getElementById('fridge-time').textContent = formatDateTime(fridgeTime);
+            } else {
+                // Fresh turkey: just show fridge removal time
+                thawRow.style.display = 'none';
+                fridgeRow.style.display = '';
+                document.getElementById('fridge-time').textContent = formatDateTime(fridgeTime);
+            }
+
+            document.getElementById('start-time').textContent = formatDateTime(startCookingTime);
+            document.getElementById('done-time').textContent = formatDateTime(turkeyDoneTime);
+            document.getElementById('carve-time').textContent = formatDateTime(finishTime);
 
             // Show calculation breakdown
             renderCalcBreakdown(cookingResult.details);
@@ -1241,6 +1239,16 @@
         // ============================================
         function formatTime(date) {
             return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        }
+
+        function formatDateTime(date) {
+            const time = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+            const dateStr = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            return `${time}, ${dateStr}`;
+        }
+
+        function formatDate(date) {
+            return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
         }
 
         function formatDuration(minutes) {
@@ -1285,8 +1293,35 @@
             document.getElementById('btn-fresh').classList.toggle('active', !frozen);
             document.getElementById('btn-frozen').classList.toggle('active', frozen);
             document.getElementById('frozen-options').classList.toggle('visible', frozen);
+            updateFrozenUI();
             calculateTimes();
             saveState();
+        }
+
+        function updateFrozenUI() {
+            // Update thaw calculator text
+            if (state.isFrozen && state.weight > 0) {
+                const thawDays = Math.ceil(state.weight / 4.5);
+                const thawCalc = document.getElementById('thaw-calculator');
+                thawCalc.innerHTML = `<strong>Thaw time:</strong> ~${thawDays} day${thawDays > 1 ? 's' : ''} in refrigerator (1 day per 4-5 lbs). ` +
+                    `<a href="https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/poultry/turkey-basics-safe-thawing" target="_blank" rel="noopener" style="color: #856404;">USDA Guidelines</a>`;
+            }
+
+            // Frozen turkeys cannot be stuffed
+            const btnStuffed = document.getElementById('btn-stuffed');
+            if (state.isFrozen) {
+                // Force unstuffed and disable the stuffed button
+                if (state.isStuffed) {
+                    setStuffed(false);
+                }
+                btnStuffed.disabled = true;
+                btnStuffed.style.opacity = '0.5';
+                btnStuffed.style.cursor = 'not-allowed';
+            } else {
+                btnStuffed.disabled = false;
+                btnStuffed.style.opacity = '1';
+                btnStuffed.style.cursor = 'pointer';
+            }
         }
 
         function setStuffed(stuffed) {
@@ -1331,7 +1366,7 @@
             state.dismissedMilestones = [];
 
             // Calculate milestones based on actual start time (NOW = turkey in oven)
-            const cookingHours = getCookingTime(state.weight, state.isStuffed, state.isFrozen, state.frozenLevel);
+            const cookingHours = getCookingTime(state.weight, state.isStuffed, state.isFrozen);
             state.calculatedMilestones = calculateActiveCookingMilestones(state.cookingStartTime, cookingHours);
 
             saveState();
@@ -1577,6 +1612,7 @@
             weightSlider.addEventListener('input', (e) => {
                 state.weight = parseFloat(e.target.value);
                 weightInput.value = state.weight.toFixed(2);
+                updateFrozenUI();
                 calculateTimes();
                 saveState();
             });
@@ -1590,6 +1626,7 @@
                     state.weight = value;
                     // Update slider if within its range
                     weightSlider.value = Math.min(25, Math.max(10, value));
+                    updateFrozenUI();
                     calculateTimes();
                     saveState();
                 }
@@ -1603,26 +1640,14 @@
                 state.weight = value;
                 weightInput.value = value.toFixed(2);
                 weightSlider.value = Math.min(25, Math.max(10, value));
+                updateFrozenUI();
                 calculateTimes();
                 saveState();
-            });
-
-            // Set frozen radio buttons
-            document.querySelectorAll('input[name="frozen-level"]').forEach(radio => {
-                radio.addEventListener('change', (e) => {
-                    state.frozenLevel = e.target.value;
-                    calculateTimes();
-                    saveState();
-                });
             });
 
             // Restore UI state
             setFrozen(state.isFrozen);
             setStuffed(state.isStuffed);
-
-            if (state.frozenLevel === 'full') {
-                document.querySelector('input[name="frozen-level"][value="full"]').checked = true;
-            }
 
             if (state.finishTime) {
                 const formatted = new Date(state.finishTime.getTime() - state.finishTime.getTimezoneOffset() * 60000)
@@ -1641,7 +1666,7 @@
             if (state.isActive && state.cookingStartTime) {
                 // Recalculate milestones from the saved cooking start time
                 // This ensures Date objects are properly restored and times are based on actual start
-                const cookingHours = getCookingTime(state.weight, state.isStuffed, state.isFrozen, state.frozenLevel);
+                const cookingHours = getCookingTime(state.weight, state.isStuffed, state.isFrozen);
                 state.calculatedMilestones = calculateActiveCookingMilestones(state.cookingStartTime, cookingHours);
                 saveState();
 
