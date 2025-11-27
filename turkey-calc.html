@@ -1292,11 +1292,17 @@
 
         function setDefaultFinishTime() {
             const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 14, 0, 0);
-            if (today < now) {
-                today.setDate(today.getDate() + 1);
+            const target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 14, 0, 0);
+            if (target < now) {
+                target.setDate(target.getDate() + 1);
             }
-            const formatted = today.toISOString().slice(0, 16);
+            // Format as local time for datetime-local input (YYYY-MM-DDTHH:MM)
+            const year = target.getFullYear();
+            const month = String(target.getMonth() + 1).padStart(2, '0');
+            const day = String(target.getDate()).padStart(2, '0');
+            const hours = String(target.getHours()).padStart(2, '0');
+            const minutes = String(target.getMinutes()).padStart(2, '0');
+            const formatted = `${year}-${month}-${day}T${hours}:${minutes}`;
             document.getElementById('finish-time').value = formatted;
             calculateTimes();
         }
