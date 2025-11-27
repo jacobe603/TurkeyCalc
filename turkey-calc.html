@@ -876,7 +876,7 @@
                 </p>
                 <div class="time-picker-group">
                     <input type="datetime-local" id="finish-time" onchange="calculateTimes()">
-                    <button class="btn btn-secondary" onclick="setDefaultFinishTime()">Set to 2:00 PM Today</button>
+                    <button class="btn btn-secondary" onclick="setDefaultFinishTime()">Set to 2:00 PM</button>
                 </div>
             </div>
 
@@ -886,6 +886,10 @@
                     <div class="result-item">
                         <div class="label">Total Cook Time</div>
                         <div class="value" id="total-cook-time">--</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="label">Remove from Fridge</div>
+                        <div class="value" id="fridge-time">--</div>
                     </div>
                     <div class="result-item">
                         <div class="label">Start Cooking At</div>
@@ -1207,12 +1211,15 @@
             // Turkey should be done 20 minutes before target carve time
             const turkeyDoneTime = new Date(finishTime.getTime() - restMinutes * 60 * 1000);
             const startCookingTime = new Date(turkeyDoneTime.getTime() - cookingMinutes * 60 * 1000);
+            // Remove from fridge 1 hour before cooking to bring to room temperature
+            const fridgeTime = new Date(startCookingTime.getTime() - 60 * 60 * 1000);
 
             // Calculate milestones
             state.calculatedMilestones = calculateMilestones(startCookingTime, cookingHours);
 
             // Update UI
             document.getElementById('total-cook-time').textContent = formatDuration(cookingMinutes);
+            document.getElementById('fridge-time').textContent = formatTime(fridgeTime);
             document.getElementById('start-time').textContent = formatTime(startCookingTime);
             document.getElementById('done-time').textContent = formatTime(turkeyDoneTime);
             document.getElementById('carve-time').textContent = formatTime(finishTime);
