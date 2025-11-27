@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turkey Cooking Calculator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #f5f0e8 0%, #e8dcc8 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            color: #8B4513;
+            font-size: 2.2rem;
+            margin-bottom: 5px;
+        }
+
+        header p {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            color: #8B4513;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0e6d8;
+        }
+
+        /* Input Controls */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        .weight-control {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .weight-control input[type="range"] {
+            flex: 1;
+            height: 8px;
+            -webkit-appearance: none;
+            background: #e0d5c5;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .weight-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #8B4513;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .weight-display {
+            background: #f5f0e8;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #8B4513;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        /* Calculation Breakdown */
+        .calc-breakdown {
+            background: #f9f6f2;
+            border: 1px solid #e0d5c5;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .calc-breakdown h4 {
+            color: #8B4513;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+
+        .calc-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px dashed #e0d5c5;
+        }
+
+        .calc-row:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            padding-top: 10px;
+            margin-top: 5px;
+            border-top: 2px solid #e0d5c5;
+        }
+
+        .calc-row .calc-label {
+            color: #666;
+        }
+
+        .calc-row .calc-value {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .calc-row:last-child .calc-label,
+        .calc-row:last-child .calc-value {
+            color: #8B4513;
+        }
+
+        .calc-note {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        /* Toggle Switches */
+        .toggle-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .toggle-item {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .toggle-buttons {
+            display: flex;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #e0d5c5;
+        }
+
+        .toggle-buttons button {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            background: white;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .toggle-buttons button.active {
+            background: #8B4513;
+            color: white;
+        }
+
+        .toggle-buttons button:hover:not(.active) {
+            background: #f5f0e8;
+        }
+
+        /* Frozen Options */
+        .frozen-options {
+            margin-top: 10px;
+            padding: 12px;
+            background: #fff8f0;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .frozen-options.visible {
+            display: block;
+        }
+
+        .frozen-options label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+
+        .frozen-options input[type="radio"] {
+            accent-color: #8B4513;
+        }
+
+        /* Time Picker */
+        .time-picker-group {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .time-picker-group input {
+            padding: 12px;
+            border: 2px solid #e0d5c5;
+            border-radius: 8px;
+            font-size: 1rem;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .time-picker-group input:focus {
+            outline: none;
+            border-color: #8B4513;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #8B4513;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #6d360f;
+        }
+
+        .btn-secondary {
+            background: #e0d5c5;
+            color: #555;
+        }
+
+        .btn-secondary:hover {
+            background: #d0c5b5;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        /* Results Display */
+        .results-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .result-item {
+            background: #f5f0e8;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .result-item .label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .result-item .value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #8B4513;
+        }
+
+        /* Timer Display */
+        .timer-section {
+            display: none;
+        }
+
+        .timer-section.active {
+            display: block;
+        }
+
+        .timer-display {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #8B4513 0%, #a0522d 100%);
+            border-radius: 12px;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .current-time {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+
+        .countdown {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .next-milestone {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 12px;
+            background: #e0d5c5;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #8B4513, #d2691e);
+            border-radius: 6px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e0d5c5;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding: 15px 0;
+            padding-left: 20px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -24px;
+            top: 20px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #e0d5c5;
+            border: 2px solid white;
+        }
+
+        .timeline-item.completed::before {
+            background: #28a745;
+        }
+
+        .timeline-item.current::before {
+            background: #8B4513;
+            box-shadow: 0 0 0 4px rgba(139, 69, 19, 0.3);
+        }
+
+        .timeline-item.upcoming::before {
+            background: #e0d5c5;
+        }
+
+        .timeline-time {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 3px;
+        }
+
+        .timeline-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+
+        .timeline-desc {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        .modal h3 {
+            color: #8B4513;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+
+        .modal p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+                padding: 10px;
+            }
+
+            .card {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .timer-display {
+                background: #8B4513 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            .countdown {
+                font-size: 2.5rem;
+            }
+
+            .toggle-group {
+                flex-direction: column;
+            }
+
+            .toggle-item {
+                min-width: 100%;
+            }
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-badge.prep {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-badge.cooking {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-badge.resting {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.done {
+            background: #28a745;
+            color: white;
+        }
+
+        /* Hidden */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Turkey Cooking Calculator</h1>
+            <p>Plan your perfect turkey with precise timing and reminders</p>
+        </header>
+
+        <!-- Setup Section -->
+        <div id="setup-section">
+            <div class="card">
+                <h2>Turkey Details</h2>
+
+                <div class="input-group">
+                    <label>Turkey Weight</label>
+                    <div class="weight-control">
+                        <input type="range" id="weight-slider" min="6" max="30" value="14" step="0.25">
+                        <div class="weight-display"><span id="weight-value">14</span> lbs</div>
+                    </div>
+                </div>
+
+                <div class="toggle-group">
+                    <div class="toggle-item">
+                        <label>Turkey State</label>
+                        <div class="toggle-buttons">
+                            <button id="btn-fresh" class="active" onclick="setFrozen(false)">Fresh</button>
+                            <button id="btn-frozen" onclick="setFrozen(true)">Frozen</button>
+                        </div>
+                        <div id="frozen-options" class="frozen-options">
+                            <label>
+                                <input type="radio" name="frozen-level" value="partial" checked>
+                                Partially Frozen (+25% time)
+                            </label>
+                            <label>
+                                <input type="radio" name="frozen-level" value="full">
+                                Fully Frozen (+50% time)
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="toggle-item">
+                        <label>Stuffing</label>
+                        <div class="toggle-buttons">
+                            <button id="btn-unstuffed" class="active" onclick="setStuffed(false)">Unstuffed</button>
+                            <button id="btn-stuffed" onclick="setStuffed(true)">Stuffed</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Target Finish Time</h2>
+                <p style="color: #666; margin-bottom: 15px; font-size: 0.9rem;">
+                    When do you want the turkey ready to carve? (includes 20 min rest time)
+                </p>
+                <div class="time-picker-group">
+                    <input type="datetime-local" id="finish-time" onchange="calculateTimes()">
+                    <button class="btn btn-secondary" onclick="setDefaultFinishTime()">Set to 2:00 PM Today</button>
+                </div>
+            </div>
+
+            <div class="card" id="results-card" style="display: none;">
+                <h2>Cooking Schedule</h2>
+                <div class="results-summary">
+                    <div class="result-item">
+                        <div class="label">Total Cook Time</div>
+                        <div class="value" id="total-cook-time">--</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="label">Start Cooking At</div>
+                        <div class="value" id="start-time">--</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="label">Turkey Done At</div>
+                        <div class="value" id="done-time">--</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="label">Ready to Carve</div>
+                        <div class="value" id="carve-time">--</div>
+                    </div>
+                </div>
+
+                <div id="calc-breakdown" class="calc-breakdown">
+                    <h4>How We Calculated This</h4>
+                    <div id="calc-details"></div>
+                    <div class="calc-note">
+                        <p style="margin-bottom: 8px;">
+                            Times are based on the official <a href="https://www.butterball.com/how-to/cook-a-turkey/roast" target="_blank" rel="noopener" style="color: #8B4513;">Butterball Roasting Guide</a>
+                            for a conventional oven at 325F. The base rate (min/lb) is interpolated from their weight-range chart -
+                            larger turkeys cook at a slightly lower rate per pound than smaller ones.
+                        </p>
+                        <p>
+                            Typical rates: <strong>13-15 min/lb</strong> (unstuffed) or <strong>15-17 min/lb</strong> (stuffed).
+                            Always verify the internal temperature reaches <strong>165F</strong> in the thickest part of the thigh.
+                        </p>
+                    </div>
+                </div>
+
+                <div id="schedule-timeline" class="timeline"></div>
+
+                <div class="action-buttons no-print">
+                    <button class="btn btn-primary" onclick="startCooking()">Start Cooking Timer</button>
+                    <button class="btn btn-secondary" onclick="printSchedule()">Print Schedule</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Cooking Section -->
+        <div id="cooking-section" class="timer-section">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h2 style="margin-bottom: 0; border: none; padding: 0;">Cooking in Progress</h2>
+                    <span id="cooking-status" class="status-badge cooking">Cooking</span>
+                </div>
+
+                <div class="timer-display">
+                    <div class="current-time">Current Time: <span id="current-time">--:--</span></div>
+                    <div class="countdown" id="countdown">--:--:--</div>
+                    <div class="next-milestone" id="next-milestone-text">Next: --</div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-labels">
+                        <span id="progress-start">Start</span>
+                        <span id="progress-percent">0%</span>
+                        <span id="progress-end">Done</span>
+                    </div>
+                </div>
+
+                <div id="active-timeline" class="timeline"></div>
+
+                <div class="action-buttons no-print">
+                    <button class="btn btn-secondary" onclick="printSchedule()">Print Schedule</button>
+                    <button class="btn btn-danger" onclick="cancelCooking()">Cancel Cooking</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Modal -->
+    <div id="modal-overlay" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-icon" id="modal-icon">&#127831;</div>
+            <h3 id="modal-title">Time for the Next Step!</h3>
+            <p id="modal-message">Your turkey needs attention.</p>
+            <button class="btn btn-primary" onclick="dismissModal()">Got it!</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // COOKING DATA (Based on Butterball/USDA)
+        // ============================================
+        const COOKING_TIMES = {
+            // Weight ranges: [minLbs, maxLbs, unstuffedHoursMin, unstuffedHoursMax, stuffedHoursMin, stuffedHoursMax]
+            ranges: [
+                [6, 7, 2, 2.5, 2.25, 2.75],
+                [7, 10, 2.5, 3, 2.75, 3.5],
+                [10, 18, 3, 3.5, 3.75, 4.5],
+                [18, 22, 3.5, 4, 4.5, 5],
+                [22, 24, 4, 4.5, 5, 5.5],
+                [24, 30, 4.5, 5, 5.5, 6.25]
+            ]
+        };
+
+        // Cooking milestones
+        const MILESTONES = [
+            { id: 'remove-fridge', name: 'Remove from Fridge', desc: 'Take turkey out to bring to room temperature', offsetMinutes: -60, icon: '&#129385;' },
+            { id: 'preheat', name: 'Preheat Oven', desc: 'Preheat oven to 325F (165C)', offsetMinutes: -30, icon: '&#128293;' },
+            { id: 'start-cooking', name: 'Turkey In Oven', desc: 'Place turkey in preheated oven', offsetMinutes: 0, icon: '&#127831;' },
+            { id: 'baste-1', name: 'First Baste', desc: 'Baste turkey with pan juices', offsetPercent: 0.25, icon: '&#129348;' },
+            { id: 'cover-foil', name: 'Cover with Foil', desc: 'Loosely cover breast with foil to prevent over-browning', offsetPercent: 0.66, icon: '&#129687;' },
+            { id: 'baste-2', name: 'Second Baste', desc: 'Baste turkey again', offsetPercent: 0.5, icon: '&#129348;' },
+            { id: 'baste-3', name: 'Third Baste', desc: 'Final baste before checking temp', offsetPercent: 0.75, icon: '&#129348;' },
+            { id: 'temp-check', name: 'Check Temperature', desc: 'Check internal temp - should be approaching 165F', offsetMinutes: -30, fromEnd: true, icon: '&#127777;' },
+            { id: 'turkey-done', name: 'Turkey Done!', desc: 'Internal temp should be 165F. Remove from oven.', offsetMinutes: 0, fromEnd: true, icon: '&#10004;' },
+            { id: 'rest', name: 'Resting Period', desc: 'Let turkey rest 20 minutes before carving', offsetMinutes: 0, fromEnd: true, icon: '&#128164;' },
+            { id: 'carve', name: 'Ready to Carve!', desc: 'Turkey is ready to be carved and served!', offsetMinutes: 20, fromEnd: true, icon: '&#127860;' }
+        ];
+
+        // ============================================
+        // STATE MANAGEMENT
+        // ============================================
+        let state = {
+            weight: 14,
+            isFrozen: false,
+            frozenLevel: 'partial',
+            isStuffed: false,
+            finishTime: null,
+            cookingStartTime: null,
+            isActive: false,
+            currentMilestoneIndex: 0,
+            dismissedMilestones: [],
+            calculatedMilestones: []
+        };
+
+        // ============================================
+        // LOCAL STORAGE
+        // ============================================
+        function saveState() {
+            localStorage.setItem('turkeyCalcState', JSON.stringify(state));
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem('turkeyCalcState');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                state = { ...state, ...parsed };
+
+                // Convert date strings back to Date objects
+                if (state.finishTime) state.finishTime = new Date(state.finishTime);
+                if (state.cookingStartTime) state.cookingStartTime = new Date(state.cookingStartTime);
+
+                return true;
+            }
+            return false;
+        }
+
+        function clearState() {
+            localStorage.removeItem('turkeyCalcState');
+            state = {
+                weight: 14,
+                isFrozen: false,
+                frozenLevel: 'partial',
+                isStuffed: false,
+                finishTime: null,
+                cookingStartTime: null,
+                isActive: false,
+                currentMilestoneIndex: 0,
+                dismissedMilestones: [],
+                calculatedMilestones: []
+            };
+        }
+
+        // ============================================
+        // CALCULATIONS
+        // ============================================
+        function getCookingTimeWithDetails(weight, isStuffed, isFrozen, frozenLevel) {
+            // Find the appropriate range
+            let range = COOKING_TIMES.ranges.find(r => weight >= r[0] && weight <= r[1]);
+            if (!range) {
+                // Default to largest range if weight exceeds
+                range = COOKING_TIMES.ranges[COOKING_TIMES.ranges.length - 1];
+            }
+
+            // Get base time range
+            let minHours, maxHours;
+            if (isStuffed) {
+                minHours = range[4];
+                maxHours = range[5];
+            } else {
+                minHours = range[2];
+                maxHours = range[3];
+            }
+
+            // Interpolate based on weight within range
+            const rangeMin = range[0];
+            const rangeMax = range[1];
+            const weightRatio = (weight - rangeMin) / (rangeMax - rangeMin);
+            let baseHours = minHours + (maxHours - minHours) * weightRatio;
+
+            // Calculate minutes per pound for display
+            const baseMinutes = baseHours * 60;
+            const minPerLb = baseMinutes / weight;
+
+            // Store details for breakdown
+            const details = {
+                weight: weight,
+                isStuffed: isStuffed,
+                isFrozen: isFrozen,
+                frozenLevel: frozenLevel,
+                rangeUsed: `${rangeMin}-${rangeMax} lbs`,
+                baseTimeRange: `${minHours}-${maxHours} hrs`,
+                baseMinutes: baseMinutes,
+                minPerLb: minPerLb,
+                frozenMultiplier: 1,
+                frozenAddedMinutes: 0,
+                finalMinutes: baseMinutes
+            };
+
+            // Apply frozen adjustment
+            let finalHours = baseHours;
+            if (isFrozen) {
+                if (frozenLevel === 'full') {
+                    details.frozenMultiplier = 1.5;
+                    finalHours = baseHours * 1.5;
+                } else {
+                    details.frozenMultiplier = 1.25;
+                    finalHours = baseHours * 1.25;
+                }
+                details.frozenAddedMinutes = (finalHours - baseHours) * 60;
+                details.finalMinutes = finalHours * 60;
+            }
+
+            return {
+                hours: finalHours,
+                details: details
+            };
+        }
+
+        function getCookingTime(weight, isStuffed, isFrozen, frozenLevel) {
+            return getCookingTimeWithDetails(weight, isStuffed, isFrozen, frozenLevel).hours;
+        }
+
+        function renderCalcBreakdown(details) {
+            let html = '';
+
+            // Weight and type
+            html += `<div class="calc-row">
+                <span class="calc-label">Turkey Weight</span>
+                <span class="calc-value">${details.weight} lbs (${details.isStuffed ? 'stuffed' : 'unstuffed'})</span>
+            </div>`;
+
+            // Base rate
+            html += `<div class="calc-row">
+                <span class="calc-label">Base Rate</span>
+                <span class="calc-value">${details.minPerLb.toFixed(1)} min/lb</span>
+            </div>`;
+
+            // Base calculation
+            html += `<div class="calc-row">
+                <span class="calc-label">Base Cook Time</span>
+                <span class="calc-value">${details.weight} lbs x ${details.minPerLb.toFixed(1)} min = ${formatDuration(details.baseMinutes)}</span>
+            </div>`;
+
+            // Frozen adjustment if applicable
+            if (details.isFrozen) {
+                const pct = details.frozenLevel === 'full' ? '+50%' : '+25%';
+                html += `<div class="calc-row">
+                    <span class="calc-label">Frozen Adjustment (${pct})</span>
+                    <span class="calc-value">+${formatDuration(details.frozenAddedMinutes)}</span>
+                </div>`;
+            }
+
+            // Final time
+            html += `<div class="calc-row">
+                <span class="calc-label">Total Cook Time</span>
+                <span class="calc-value">${formatDuration(details.finalMinutes)}</span>
+            </div>`;
+
+            document.getElementById('calc-details').innerHTML = html;
+        }
+
+        function calculateMilestones(startTime, cookingHours) {
+            const cookingMinutes = cookingHours * 60;
+            const milestones = [];
+
+            // Sort milestones by when they occur
+            const sortedMilestones = [...MILESTONES].map(m => {
+                let time;
+                if (m.offsetPercent !== undefined) {
+                    // Percentage-based milestone
+                    time = new Date(startTime.getTime() + (m.offsetPercent * cookingMinutes * 60 * 1000));
+                } else if (m.fromEnd) {
+                    // Offset from end of cooking
+                    const endTime = new Date(startTime.getTime() + cookingMinutes * 60 * 1000);
+                    time = new Date(endTime.getTime() + m.offsetMinutes * 60 * 1000);
+                } else {
+                    // Offset from start
+                    time = new Date(startTime.getTime() + m.offsetMinutes * 60 * 1000);
+                }
+                return { ...m, time };
+            });
+
+            // Sort by time
+            sortedMilestones.sort((a, b) => a.time - b.time);
+
+            return sortedMilestones;
+        }
+
+        function calculateTimes() {
+            const finishInput = document.getElementById('finish-time').value;
+            if (!finishInput) return;
+
+            const finishTime = new Date(finishInput);
+            state.finishTime = finishTime;
+
+            const cookingResult = getCookingTimeWithDetails(state.weight, state.isStuffed, state.isFrozen, state.frozenLevel);
+            const cookingHours = cookingResult.hours;
+            const cookingMinutes = cookingHours * 60;
+            const restMinutes = 20;
+
+            // Turkey should be done 20 minutes before target carve time
+            const turkeyDoneTime = new Date(finishTime.getTime() - restMinutes * 60 * 1000);
+            const startCookingTime = new Date(turkeyDoneTime.getTime() - cookingMinutes * 60 * 1000);
+
+            // Calculate milestones
+            state.calculatedMilestones = calculateMilestones(startCookingTime, cookingHours);
+
+            // Update UI
+            document.getElementById('total-cook-time').textContent = formatDuration(cookingMinutes);
+            document.getElementById('start-time').textContent = formatTime(startCookingTime);
+            document.getElementById('done-time').textContent = formatTime(turkeyDoneTime);
+            document.getElementById('carve-time').textContent = formatTime(finishTime);
+
+            // Show calculation breakdown
+            renderCalcBreakdown(cookingResult.details);
+
+            // Show results
+            document.getElementById('results-card').style.display = 'block';
+
+            // Render timeline
+            renderTimeline('schedule-timeline', state.calculatedMilestones, -1);
+
+            saveState();
+        }
+
+        // ============================================
+        // UI HELPERS
+        // ============================================
+        function formatTime(date) {
+            return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        }
+
+        function formatDuration(minutes) {
+            const hours = Math.floor(minutes / 60);
+            const mins = Math.round(minutes % 60);
+            if (hours === 0) return `${mins} min`;
+            if (mins === 0) return `${hours} hr`;
+            return `${hours} hr ${mins} min`;
+        }
+
+        function formatCountdown(ms) {
+            if (ms < 0) return '00:00:00';
+            const totalSeconds = Math.floor(ms / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function renderTimeline(containerId, milestones, currentIndex) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = milestones.map((m, i) => {
+                let statusClass = 'upcoming';
+                if (i < currentIndex) statusClass = 'completed';
+                else if (i === currentIndex) statusClass = 'current';
+
+                return `
+                    <div class="timeline-item ${statusClass}">
+                        <div class="timeline-time">${formatTime(m.time)}</div>
+                        <div class="timeline-title">${m.name}</div>
+                        <div class="timeline-desc">${m.desc}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ============================================
+        // INPUT HANDLERS
+        // ============================================
+        function setFrozen(frozen) {
+            state.isFrozen = frozen;
+            document.getElementById('btn-fresh').classList.toggle('active', !frozen);
+            document.getElementById('btn-frozen').classList.toggle('active', frozen);
+            document.getElementById('frozen-options').classList.toggle('visible', frozen);
+            calculateTimes();
+            saveState();
+        }
+
+        function setStuffed(stuffed) {
+            state.isStuffed = stuffed;
+            document.getElementById('btn-unstuffed').classList.toggle('active', !stuffed);
+            document.getElementById('btn-stuffed').classList.toggle('active', stuffed);
+            calculateTimes();
+            saveState();
+        }
+
+        function setDefaultFinishTime() {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 14, 0, 0);
+            if (today < now) {
+                today.setDate(today.getDate() + 1);
+            }
+            const formatted = today.toISOString().slice(0, 16);
+            document.getElementById('finish-time').value = formatted;
+            calculateTimes();
+        }
+
+        // ============================================
+        // COOKING TIMER
+        // ============================================
+        let timerInterval = null;
+
+        function startCooking() {
+            // Request notification permission
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+
+            state.isActive = true;
+            state.cookingStartTime = new Date(); // This is when the turkey actually goes in the oven
+            state.currentMilestoneIndex = 0;
+            state.dismissedMilestones = [];
+
+            // Calculate milestones based on actual start time (NOW = turkey in oven)
+            const cookingHours = getCookingTime(state.weight, state.isStuffed, state.isFrozen, state.frozenLevel);
+            state.calculatedMilestones = calculateActiveCookingMilestones(state.cookingStartTime, cookingHours);
+
+            saveState();
+            showCookingSection();
+            startTimer();
+        }
+
+        // Calculate milestones for active cooking - excludes prep steps that already happened
+        function calculateActiveCookingMilestones(ovenStartTime, cookingHours) {
+            const cookingMinutes = cookingHours * 60;
+            const cookingEndTime = new Date(ovenStartTime.getTime() + cookingMinutes * 60 * 1000);
+
+            // Only include milestones from "Turkey In Oven" onward
+            const activeMilestones = MILESTONES.filter(m => {
+                // Exclude pre-cooking prep steps (negative offset from start)
+                if (!m.fromEnd && m.offsetPercent === undefined && m.offsetMinutes < 0) {
+                    return false;
+                }
+                return true;
+            });
+
+            const calculatedMilestones = activeMilestones.map(m => {
+                let time;
+                if (m.offsetPercent !== undefined) {
+                    // Percentage-based milestone (during cooking)
+                    time = new Date(ovenStartTime.getTime() + (m.offsetPercent * cookingMinutes * 60 * 1000));
+                } else if (m.fromEnd) {
+                    // Offset from end of cooking
+                    time = new Date(cookingEndTime.getTime() + m.offsetMinutes * 60 * 1000);
+                } else {
+                    // Offset from start (turkey in oven)
+                    time = new Date(ovenStartTime.getTime() + m.offsetMinutes * 60 * 1000);
+                }
+                return { ...m, time };
+            });
+
+            // Sort by time
+            calculatedMilestones.sort((a, b) => a.time - b.time);
+
+            return calculatedMilestones;
+        }
+
+        function showCookingSection() {
+            document.getElementById('setup-section').style.display = 'none';
+            document.getElementById('cooking-section').classList.add('active');
+        }
+
+        function showSetupSection() {
+            document.getElementById('setup-section').style.display = 'block';
+            document.getElementById('cooking-section').classList.remove('active');
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+            updateTimer();
+        }
+
+        function updateTimer() {
+            const now = new Date();
+
+            // Update current time
+            document.getElementById('current-time').textContent = formatTime(now);
+
+            // Find current and next milestone
+            let currentIndex = -1;
+            let nextMilestone = null;
+
+            for (let i = 0; i < state.calculatedMilestones.length; i++) {
+                const m = state.calculatedMilestones[i];
+                if (now >= m.time) {
+                    currentIndex = i;
+                } else if (!nextMilestone) {
+                    nextMilestone = m;
+                }
+            }
+
+            state.currentMilestoneIndex = currentIndex;
+
+            // Check for milestone notifications
+            if (currentIndex >= 0) {
+                const currentMilestone = state.calculatedMilestones[currentIndex];
+                if (!state.dismissedMilestones.includes(currentMilestone.id)) {
+                    // Time difference less than 30 seconds - show notification
+                    const timeDiff = now - currentMilestone.time;
+                    if (timeDiff >= 0 && timeDiff < 30000) {
+                        showMilestoneNotification(currentMilestone);
+                    }
+                }
+            }
+
+            // Update countdown
+            if (nextMilestone) {
+                const timeToNext = nextMilestone.time - now;
+                document.getElementById('countdown').textContent = formatCountdown(timeToNext);
+                document.getElementById('next-milestone-text').textContent = `Next: ${nextMilestone.name}`;
+            } else {
+                // All milestones complete
+                document.getElementById('countdown').textContent = 'DONE!';
+                document.getElementById('next-milestone-text').textContent = 'Turkey is ready!';
+            }
+
+            // Update progress
+            const startMilestone = state.calculatedMilestones.find(m => m.id === 'start-cooking');
+            const endMilestone = state.calculatedMilestones.find(m => m.id === 'carve');
+
+            if (startMilestone && endMilestone) {
+                const totalDuration = endMilestone.time - startMilestone.time;
+                const elapsed = now - startMilestone.time;
+                const progress = Math.max(0, Math.min(100, (elapsed / totalDuration) * 100));
+
+                document.getElementById('progress-fill').style.width = `${progress}%`;
+                document.getElementById('progress-percent').textContent = `${Math.round(progress)}%`;
+                document.getElementById('progress-start').textContent = formatTime(startMilestone.time);
+                document.getElementById('progress-end').textContent = formatTime(endMilestone.time);
+            }
+
+            // Update status badge
+            const statusBadge = document.getElementById('cooking-status');
+            const doneMilestone = state.calculatedMilestones.find(m => m.id === 'turkey-done');
+            const restMilestone = state.calculatedMilestones.find(m => m.id === 'rest');
+            const carveMilestone = state.calculatedMilestones.find(m => m.id === 'carve');
+
+            if (carveMilestone && now >= carveMilestone.time) {
+                statusBadge.textContent = 'Ready!';
+                statusBadge.className = 'status-badge done';
+            } else if (doneMilestone && now >= doneMilestone.time) {
+                statusBadge.textContent = 'Resting';
+                statusBadge.className = 'status-badge resting';
+            } else if (startMilestone && now >= startMilestone.time) {
+                statusBadge.textContent = 'Cooking';
+                statusBadge.className = 'status-badge cooking';
+            } else {
+                statusBadge.textContent = 'Prep';
+                statusBadge.className = 'status-badge prep';
+            }
+
+            // Update timeline
+            renderTimeline('active-timeline', state.calculatedMilestones, currentIndex);
+
+            saveState();
+        }
+
+        function cancelCooking() {
+            if (confirm('Are you sure you want to cancel cooking? All progress will be lost.')) {
+                if (timerInterval) clearInterval(timerInterval);
+                clearState();
+                showSetupSection();
+                document.getElementById('results-card').style.display = 'none';
+                initializeUI();
+            }
+        }
+
+        // ============================================
+        // NOTIFICATIONS
+        // ============================================
+        function showMilestoneNotification(milestone) {
+            // Mark as dismissed
+            state.dismissedMilestones.push(milestone.id);
+            saveState();
+
+            // Play sound
+            playNotificationSound();
+
+            // Show modal
+            document.getElementById('modal-icon').innerHTML = milestone.icon;
+            document.getElementById('modal-title').textContent = milestone.name;
+            document.getElementById('modal-message').textContent = milestone.desc;
+            document.getElementById('modal-overlay').classList.add('active');
+
+            // Browser notification
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('Turkey Timer', {
+                    body: `${milestone.name}: ${milestone.desc}`,
+                    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">&#127831;</text></svg>',
+                    requireInteraction: true
+                });
+            }
+        }
+
+        function dismissModal() {
+            document.getElementById('modal-overlay').classList.remove('active');
+        }
+
+        function playNotificationSound() {
+            // Create a simple beep using Web Audio API
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+
+                // Second beep
+                setTimeout(() => {
+                    const osc2 = audioContext.createOscillator();
+                    const gain2 = audioContext.createGain();
+                    osc2.connect(gain2);
+                    gain2.connect(audioContext.destination);
+                    osc2.frequency.value = 1000;
+                    osc2.type = 'sine';
+                    gain2.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                    osc2.start(audioContext.currentTime);
+                    osc2.stop(audioContext.currentTime + 0.5);
+                }, 200);
+            } catch (e) {
+                console.log('Audio not supported');
+            }
+        }
+
+        // ============================================
+        // PRINT
+        // ============================================
+        function printSchedule() {
+            window.print();
+        }
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        function initializeUI() {
+            // Set up weight slider
+            const weightSlider = document.getElementById('weight-slider');
+            const weightValue = document.getElementById('weight-value');
+
+            weightSlider.value = state.weight;
+            weightValue.textContent = state.weight % 1 === 0 ? state.weight : state.weight.toFixed(2).replace(/\.?0+$/, '');
+
+            weightSlider.addEventListener('input', (e) => {
+                state.weight = parseFloat(e.target.value);
+                // Display with proper decimal formatting
+                weightValue.textContent = state.weight % 1 === 0 ? state.weight : state.weight.toFixed(2).replace(/\.?0+$/, '');
+                calculateTimes();
+                saveState();
+            });
+
+            // Set frozen radio buttons
+            document.querySelectorAll('input[name="frozen-level"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    state.frozenLevel = e.target.value;
+                    calculateTimes();
+                    saveState();
+                });
+            });
+
+            // Restore UI state
+            setFrozen(state.isFrozen);
+            setStuffed(state.isStuffed);
+
+            if (state.frozenLevel === 'full') {
+                document.querySelector('input[name="frozen-level"][value="full"]').checked = true;
+            }
+
+            if (state.finishTime) {
+                const formatted = new Date(state.finishTime.getTime() - state.finishTime.getTimezoneOffset() * 60000)
+                    .toISOString().slice(0, 16);
+                document.getElementById('finish-time').value = formatted;
+                calculateTimes();
+            }
+        }
+
+        // On page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const hasState = loadState();
+            initializeUI();
+
+            // Check if cooking was in progress
+            if (state.isActive && state.cookingStartTime) {
+                // Recalculate milestones from the saved cooking start time
+                // This ensures Date objects are properly restored and times are based on actual start
+                const cookingHours = getCookingTime(state.weight, state.isStuffed, state.isFrozen, state.frozenLevel);
+                state.calculatedMilestones = calculateActiveCookingMilestones(state.cookingStartTime, cookingHours);
+                saveState();
+
+                showCookingSection();
+                startTimer();
+            }
+
+            // Close modal on overlay click
+            document.getElementById('modal-overlay').addEventListener('click', (e) => {
+                if (e.target === e.currentTarget) {
+                    dismissModal();
+                }
+            });
+
+            // Close modal on Escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    dismissModal();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
