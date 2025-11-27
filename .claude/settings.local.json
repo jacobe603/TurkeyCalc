@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:www.fsis.usda.gov)",
+      "WebFetch(domain:www.foodnetwork.com)",
+      "WebFetch(domain:www.butterball.com)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd Turkey Cooking Calculator web app\n\nSingle-file HTML app for calculating turkey cooking times with:\n- Weight-based cook time calculation (0.25 lb increments)\n- Fresh/frozen and stuffed/unstuffed options\n- Target finish time picker with start time calculation\n- Live countdown timer with milestone tracking\n- Browser notifications and sound alerts\n- localStorage persistence for page refresh recovery\n- Print-friendly schedule summary\n- Calculation breakdown showing min/lb rate\n\nBased on Butterball/USDA guidelines at 325F.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(gh repo create:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
